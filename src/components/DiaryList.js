@@ -32,7 +32,7 @@ const ControlMenu = ({ value, onChange, optionList }) => {
 
 const DiaryList = ({ diaryList }) => {
   const navigate = useNavigate();
-  const [sortType, setSortType] = useState("lastest");
+  const [sortType, setSortType] = useState("latest");
   const [filter, setFilter] = useState("all");
 
   const getProcessedDiaryList = () => {
@@ -43,11 +43,12 @@ const DiaryList = ({ diaryList }) => {
         return parseInt(item.emotion) > 3;
       }
     };
+
     const compare = (a, b) => {
       if (sortType === "latest") {
-        return parseInt(b.date) - parseInt(a.date);
+        return parseInt(b.date) - parseInt(a.date); // 내림차순 정렬
       } else {
-        return parseInt(a.date) - parseInt(b.date);
+        return parseInt(a.date) - parseInt(b.date); // 오름차순 정렬
       }
     };
 
