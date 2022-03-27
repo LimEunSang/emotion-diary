@@ -1,4 +1,4 @@
-import React, { useReducer, useRef } from "react";
+import React, { useEffect, useReducer, useRef } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
 import Home from "./pages/Home";
@@ -22,55 +22,44 @@ const reducer = (state, action) => {
     }
     case "EDIT": {
       newState = state.map((it) =>
-        it.id === action.date.id ? { ...action.date } : it
+        it.id === action.data.id ? { ...action.data } : it
       );
       break;
     }
     default:
       return state;
   }
+
+  // reducer 함수가 수행될 때 마다 (= INIT, CREATE, REMOVE, EDIT 이 수행될 때 마다) localStarage 에 저장
+  localStorage.setItem("diary", JSON.stringify(newState));
+
   return newState;
 };
 
 export const DiaryStateContext = React.createContext();
 export const DiaryDispatchContext = React.createContext();
 
-const dummyData = [
-  {
-    id: 1,
-    emotion: 1,
-    content: "오늘의 일기 1번",
-    date: 1648121337561,
-  },
-  {
-    id: 2,
-    emotion: 2,
-    content: "오늘의 일기 2번",
-    date: 1648121337562,
-  },
-  {
-    id: 3,
-    emotion: 3,
-    content: "오늘의 일기 3번",
-    date: 1648121337563,
-  },
-  {
-    id: 4,
-    emotion: 4,
-    content: "오늘의 일기 4번",
-    date: 1648121337564,
-  },
-  {
-    id: 5,
-    emotion: 5,
-    content: "오늘의 일기 5번",
-    date: 1648121337565,
-  },
-];
-
 function App() {
-  const [data, dispatch] = useReducer(reducer, dummyData);
+  const [data, dispatch] = useReducer(reducer, []);
 
+  // mount 되었을 때 localStorage 에 있는 값을 꺼내 data state 의 기초 값으로 사용
+  useEffect(() => {
+    const localData = localStorage.getItem("diary");
+    if (localData) {
+      const diaryList = JSON.parse(localData).sort(
+        (a, b) => parseInt(b.id) - parseInt(a.id)
+      );
+
+      if (diaryList.length > 0) {
+        // 꺼내 온 데이터를 내림차순으로 정렬 후 가장 첫 번째 데이터의 id + 1 값을 현재 데이터의 id 로 설정
+        dataId.current = parseInt(diaryList[0].id) + 1;
+
+        dispatch({ type: "INIT", data: diaryList });
+      }
+    }
+  }, []);
+
+  // 각각의 Diary 를 구별할 Id
   const dataId = useRef(0);
 
   // CREATE
@@ -113,7 +102,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/new" element={<New />} />
-              <Route path="/edit" element={<Edit />} />
+              <Route path="/edit/:id" element={<Edit />} />
               <Route path="/diary/:id" element={<Diary />} />
             </Routes>
           </div>
